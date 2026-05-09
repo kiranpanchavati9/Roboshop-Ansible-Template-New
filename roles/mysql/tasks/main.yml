@@ -1,12 +1,21 @@
 - name: Install MySQL Server
   ansible.builtin.dnf:
-    name: mysql-server
+    name:
+      - mysql-community-server
     state: present
+  ignore_errors: yes
+  register: mysql_community_install
 
-- name: Start MySQl Server service
+- name: Fallback - Install MariaDB if MySQL community not available
+  ansible.builtin.dnf:
+    name: mariadb-server
+    state: present
+  when: mysql_community_install is failed
+
+- name: Start MySQL/MariaDB service
   ansible.builtin.systemd_service:
     state: restarted
-    name: mysqld
+    name: "{{ 'mysqld' if mysql_community_install is succeeded else 'mariadb' }}"
     enabled: true
 
 - name: Ensure Root Password is Set
@@ -23,6 +32,7 @@
     path: /etc/my.cnf.d/mysql-server.cnf
     regexp: '^bind-address'
     line: 'bind-address = 0.0.0.0'
+    create: yes
   notify: Restart MySQL
 
 - name: Create Roboshop User

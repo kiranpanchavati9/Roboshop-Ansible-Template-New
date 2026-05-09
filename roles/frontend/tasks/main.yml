@@ -26,7 +26,7 @@
 
 - name: Copy nginx file
   ansible.builtin.template:
-    src: /root/Ansible/Ansible-RoboShop-V1/nginx.conf
+    src: nginx.conf
     dest: /etc/nginx/nginx.conf
 
 - name: Start and enable nginx

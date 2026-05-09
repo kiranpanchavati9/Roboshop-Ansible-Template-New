@@ -23,7 +23,7 @@
     mysql -uroot -pRoboShop@1 <<< "{{ app_user_sql.content | b64decode }}"
   args:
     executable: /bin/bash
-  delegate_to: mysql-{{ env }}.kiranpanchavati.online
+  delegate_to: "mysql-{{ env }}.kiranpanchavati.online"
 
 - name: Load master data (run as roboshop)
   ansible.builtin.shell: |

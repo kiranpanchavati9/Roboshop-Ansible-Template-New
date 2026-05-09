@@ -1,5 +1,12 @@
+- name: Install dnf-plugins-core (required for config-manager)
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+
 - name: Enable CRB repository
   ansible.builtin.command: dnf config-manager --set-enabled crb
+  register: crb_result
+  failed_when: crb_result.rc != 0 and 'No matching repo' not in crb_result.stderr
 
 - name: Install EPEL release
   ansible.builtin.dnf:
