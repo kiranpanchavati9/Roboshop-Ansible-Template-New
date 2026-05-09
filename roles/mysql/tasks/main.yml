@@ -3,11 +3,11 @@
     name: mysql-server
     state: present
 
-- name: Start and Enable MySQL
-  ansible.builtin.service:
+- name: Start MySQl Server service
+  ansible.builtin.systemd_service:
+    state: restarted
     name: mysqld
-    state: started
-    enabled: yes
+    enabled: true
 
 - name: Ensure Root Password is Set
   ansible.builtin.shell: |

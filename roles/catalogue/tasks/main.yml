@@ -31,3 +31,9 @@
     < /app/db/master-data.js
   when: catalogue_count.stdout is defined and catalogue_count.stdout | int == 0
 
+# ---------------- Start Catalogue Service ----------------
+- name: Start and enable catalogue
+  ansible.builtin.systemd_service:
+    name: catalogue
+    state: started
+    enabled: true

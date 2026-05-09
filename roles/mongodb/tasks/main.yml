@@ -16,8 +16,8 @@
     line: '  bindIp: 0.0.0.0'
     backrefs: no
 
-- name: Start and enable MongoDB
-  ansible.builtin.service:
+- name: Start MongoDB service
+  ansible.builtin.systemd_service:
+    state: restarted
     name: mongod
-    state: started
-    enabled: yes
+    enabled: true
