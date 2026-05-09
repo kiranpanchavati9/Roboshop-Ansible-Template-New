@@ -3,7 +3,7 @@
     name:
       - maven
       - unzip
-      - mysql
+      - mariadb
     state: present
 
 - name: App Pre-requisites - Load
@@ -21,17 +21,22 @@
   ansible.builtin.command: mvn clean package
   args:
     chdir: /app
-  become_user: roboshop
 
 - name: Rename shipping jar
   ansible.builtin.command: mv target/{{component}}-1.0.jar {{component}}.jar
   args:
     chdir: /app
-  become_user: roboshop
+
+- name: Fix /app ownership after build
+  ansible.builtin.file:
+    path: /app
+    owner: roboshop
+    group: roboshop
+    recurse: yes
 
 - name: Wait for MySQL to be reachable
   ansible.builtin.wait_for:
-    host: mysql-{{ env }}.kiranpanchavati.online
+    host: "mysql-{{ env }}.kiranpanchavati.online"
     port: 3306
     timeout: 60
 

@@ -8,10 +8,11 @@
   register: crb_result
   failed_when: crb_result.rc != 0 and 'No matching repo' not in crb_result.stderr
 
-- name: Install EPEL release
+- name: Install EPEL release for RHEL/Rocky 10
   ansible.builtin.dnf:
-    name: epel-release
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
     state: present
+    disable_gpg_check: true
 
 - name: Clean dnf cache
   ansible.builtin.command: dnf clean all

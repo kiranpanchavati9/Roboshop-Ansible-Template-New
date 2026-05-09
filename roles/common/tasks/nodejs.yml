@@ -24,7 +24,13 @@
   ansible.builtin.command: npm install
   args:
     chdir: /app
-  become_user: roboshop
+
+- name: Fix /app ownership after npm install
+  ansible.builtin.file:
+    path: /app
+    owner: roboshop
+    group: roboshop
+    recurse: yes
 
 - name: Load the Systemd File
   ansible.builtin.import_tasks: systemd.yml
