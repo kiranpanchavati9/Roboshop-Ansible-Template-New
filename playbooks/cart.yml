@@ -1,5 +1,7 @@
 - name: Cart Service Setup (Rocky Linux 10)
-  hosts: cart
+  hosts: localhost
+  connection: local
   become: true
+
   roles:
     - cart

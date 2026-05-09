@@ -1,5 +1,7 @@
 - name: MongoDB Setup
-  hosts: mongodb
+  hosts: localhost
+  connection: local
   become: true
+
   roles:
     - mongodb

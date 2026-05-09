@@ -1,5 +1,7 @@
 - name: User Service Setup (Rocky Linux 10)
-  hosts: user
+  hosts: localhost
+  connection: local
   become: true
+
   roles:
     - user

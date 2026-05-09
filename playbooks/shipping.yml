@@ -1,5 +1,7 @@
 - name: Shipping Service Setup
-  hosts: shipping
+  hosts: localhost
+  connection: local
   become: true
+
   roles:
     - shipping

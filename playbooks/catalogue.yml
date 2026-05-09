@@ -1,5 +1,7 @@
 - name: Catalogue Setup
-  hosts: catalogue
+  hosts: localhost
+  connection: local
   become: true
+
   roles:
     - catalogue

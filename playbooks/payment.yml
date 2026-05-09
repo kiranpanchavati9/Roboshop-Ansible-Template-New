@@ -1,5 +1,7 @@
 - name: Payment Service Setup
-  hosts: payment
+  hosts: localhost
+  connection: local
   become: true
+
   roles:
     - payment
