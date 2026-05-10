@@ -1,46 +1,87 @@
-- name: Install MySQL Server
+- name: Install MySQL Community Server
   ansible.builtin.dnf:
-    name:
-      - mysql-community-server
+    name: mysql-community-server
     state: present
   ignore_errors: yes
   register: mysql_community_install
 
-- name: Fallback - Install MariaDB if MySQL community not available
+- name: Fallback - Install MariaDB Server
   ansible.builtin.dnf:
     name: mariadb-server
     state: present
   when: mysql_community_install is failed
 
-- name: Start MySQL/MariaDB service
+# ---------------------------------------------------------
+# Start Database Service
+# ---------------------------------------------------------
+- name: Start and enable MySQL/MariaDB
   ansible.builtin.systemd_service:
-    state: restarted
     name: "{{ 'mysqld' if mysql_community_install is succeeded else 'mariadb' }}"
+    state: started
     enabled: true
 
-- name: Ensure Root Password is Set
-  ansible.builtin.shell: |
-    mysql -uroot -p{{ mysql_root_password }} -e "QUIT" || \
-    mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}'; FLUSH PRIVILEGES;"
-  args:
-    executable: /bin/bash
-  register: root_pass_setup
-  failed_when: false
-
+# ---------------------------------------------------------
+# Configure bind-address
+# ---------------------------------------------------------
 - name: Configure MySQL bind address
   ansible.builtin.copy:
     dest: /etc/my.cnf.d/mysql-server.cnf
     content: |
       [mysqld]
       bind-address=0.0.0.0
-  notify: Restart MySQL
 
-- name: Create Roboshop User
+- name: Restart MySQL/MariaDB after config change
+  ansible.builtin.systemd_service:
+    name: "{{ 'mysqld' if mysql_community_install is succeeded else 'mariadb' }}"
+    state: restarted
+
+# ---------------------------------------------------------
+# Set Root Password
+# ---------------------------------------------------------
+- name: Ensure MySQL root password is set
   ansible.builtin.shell: |
-    mysql -uroot -p{{ mysql_root_password }} <<EOF
+    mysql -h localhost -uroot -p{{ mysql_root_password }} -e "SHOW DATABASES;" >/dev/null 2>&1 || \
+    mysql -h localhost -uroot -e "
+    ALTER USER 'root'@'localhost'
+    IDENTIFIED BY 'RoboShop@1';
+    FLUSH PRIVILEGES;"
+  args:
+    executable: /bin/bash
+  register: mysql_root_password_result
+  failed_when: false
+
+# ---------------------------------------------------------
+# Create Application Users
+# ---------------------------------------------------------
+- name: Create roboshop user
+  ansible.builtin.shell: |
+    mysql -h localhost -uroot -p{{ mysql_root_password }} <<EOF
     CREATE USER IF NOT EXISTS 'roboshop'@'%' IDENTIFIED BY 'RoboShop@1';
     GRANT ALL PRIVILEGES ON *.* TO 'roboshop'@'%' WITH GRANT OPTION;
     FLUSH PRIVILEGES;
     EOF
   args:
     executable: /bin/bash
+
+- name: Create shipping user
+  ansible.builtin.shell: |
+    mysql -h localhost -uroot -p{{ mysql_root_password }} <<EOF
+    CREATE USER IF NOT EXISTS 'shipping'@'%' IDENTIFIED BY 'RoboShop@1';
+    GRANT ALL PRIVILEGES ON cities.* TO 'shipping'@'%';
+    FLUSH PRIVILEGES;
+    EOF
+  args:
+    executable: /bin/bash
+
+# ---------------------------------------------------------
+# Verify MySQL Listening
+# ---------------------------------------------------------
+- name: Verify MySQL listening on 0.0.0.0:3306
+  ansible.builtin.shell: |
+    ss -lntp | grep 3306
+  register: mysql_port_check
+  changed_when: false
+
+- name: Display MySQL port status
+  ansible.builtin.debug:
+    var: mysql_port_check.stdout
