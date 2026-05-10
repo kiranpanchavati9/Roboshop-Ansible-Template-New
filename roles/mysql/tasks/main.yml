@@ -27,12 +27,12 @@
   register: root_pass_setup
   failed_when: false
 
-- name: Allow Remote Connections
-  ansible.builtin.lineinfile:
-    path: /etc/my.cnf.d/mysql-server.cnf
-    regexp: '^bind-address'
-    line: 'bind-address = 0.0.0.0'
-    create: yes
+- name: Configure MySQL bind address
+  ansible.builtin.copy:
+    dest: /etc/my.cnf.d/mysql-server.cnf
+    content: |
+      [mysqld]
+      bind-address=0.0.0.0
   notify: Restart MySQL
 
 - name: Create Roboshop User
