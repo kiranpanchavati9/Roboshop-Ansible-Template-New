@@ -49,9 +49,11 @@
     state: restarted
 
 # ---------------- VALIDATION ----------------
+# ---------------- VALIDATION ----------------
 - name: Verify catalogue service is running
-  ansible.builtin.command: systemctl is-active catalogue
-  register: catalogue_service_status
+  ansible.builtin.command:
+    cmd: systemctl is-active catalogue
+  register: catalogue_is_active
   changed_when: false
   failed_when:
-    - catalogue_service_status.stdout != "active"atalogue_service_status.stdout != "active"
+    - catalogue_is_active.stdout != "active"
