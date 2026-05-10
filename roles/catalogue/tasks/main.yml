@@ -19,20 +19,23 @@
 
 # ---------------- MongoDB DATA INITIALIZATION ----------------
 - name: Check if catalogue data already exists
-  ansible.builtin.command: >
+  ansible.builtin.shell: >
     mongosh --host mongodb-{{ env }}.kiranpanchavati.online
     --quiet --eval "db.getSiblingDB('catalogue').products.countDocuments()"
   register: catalogue_count
   changed_when: false
-  ignore_errors: yes
+  failed_when: false
+
+- name: Debug catalogue count
+  ansible.builtin.debug:
+    var: catalogue_count.stdout
 
 - name: Load catalogue master data
   ansible.builtin.shell: >
     mongosh --host mongodb-{{ env }}.kiranpanchavati.online
     < /app/db/master-data.js
   when:
-    - catalogue_count.stdout is defined
-    - catalogue_count.stdout | int == 0
+    - catalogue_count.stdout | default('0') | int == 0
 
 # ---------------- SYSTEMD ----------------
 - name: Reload systemd
@@ -42,12 +45,13 @@
 - name: Enable and start catalogue service
   ansible.builtin.systemd_service:
     name: catalogue
-    state: started
     enabled: true
+    state: restarted
 
 # ---------------- VALIDATION ----------------
 - name: Verify catalogue service is running
   ansible.builtin.command: systemctl is-active catalogue
   register: catalogue_service_status
   changed_when: false
-  failed_when: catalogue_service_status.stdout != "active"
+  failed_when:
+    - catalogue_service_status.stdout != "active"atalogue_service_status.stdout != "active"
