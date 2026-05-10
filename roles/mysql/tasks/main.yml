@@ -38,7 +38,7 @@
 - name: Create Roboshop User
   ansible.builtin.shell: |
     mysql -uroot -p{{ mysql_root_password }} <<EOF
-    CREATE USER IF NOT EXISTS 'roboshop'@'%' IDENTIFIED WITH mysql_native_password BY 'RoboShop@1';
+    CREATE USER IF NOT EXISTS 'roboshop'@'%' IDENTIFIED BY 'RoboShop@1';
     GRANT ALL PRIVILEGES ON *.* TO 'roboshop'@'%' WITH GRANT OPTION;
     FLUSH PRIVILEGES;
     EOF
