@@ -7,7 +7,7 @@
     create_home: yes
 
 ####################################################################
-# 3. Copy Cart systemd service file
+# 3. Copy systemd service file
 ####################################################################
 - name: Copy {{component}} systemd service file
   ansible.builtin.template:
@@ -15,7 +15,15 @@
     dest: /etc/systemd/system/{{component}}.service
 
 ####################################################################
-# 4. Create /app directory
+# 4. Remove old app directory
+####################################################################
+- name: Remove old /app directory
+  ansible.builtin.file:
+    path: /app
+    state: absent
+
+####################################################################
+# 5. Create /app directory
 ####################################################################
 - name: Create /app directory
   ansible.builtin.file:
@@ -24,18 +32,21 @@
     owner: roboshop
     group: roboshop
 
-#####################################################################
-## 5. Download and extract {{component}}  application
-#####################################################################
-#- name: Download and extract {{component}}  application code
-#  ansible.builtin.unarchive:
-#    src: https://roboshop-artifacts.s3.amazonaws.com/{{component}}-v3.zip
-#    dest: /app
-#    remote_src: yes
-#    owner: roboshop
-#    group: roboshop
-
+####################################################################
+# 6. Download application code
+####################################################################
 - name: Download {{component}} application code
   ansible.builtin.get_url:
     url: "https://roboshop-artifacts.s3.amazonaws.com/{{component}}-v3.zip"
     dest: "/tmp/{{component}}.zip"
+
+####################################################################
+# 7. Extract application code
+####################################################################
+- name: Extract {{component}} application code
+  ansible.builtin.unarchive:
+    src: "/tmp/{{component}}.zip"
+    dest: /app
+    remote_src: yes
+    owner: roboshop
+    group: roboshop
