@@ -7,10 +7,12 @@
 
 # ---------------- DB OPERATIONS ----------------
 
-- name: Load DB schema (run as roboshop)
+- name: Load DB schema
   ansible.builtin.shell: |
-    mysql -h mysql-{{ env }}.kiranpanchavati.online -uroboshop -pRoboShop@1 < /app/db/schema.sql
+    mysql -h mysql-{{ env }}.kiranpanchavati.online \
+    -uroboshop -pRoboShop@1 < schema.sql
   args:
+    chdir: /app/db
     executable: /bin/bash
 
 - name: Read app-user.sql from shipping
@@ -18,15 +20,28 @@
     src: /app/db/app-user.sql
   register: app_user_sql
 
-- name: Run app-user.sql locally on MySQL server as root
+- name: Run app-user.sql on MySQL server
   ansible.builtin.shell: |
     mysql -uroot -pRoboShop@1 <<< "{{ app_user_sql.content | b64decode }}"
   args:
     executable: /bin/bash
   delegate_to: "mysql-{{ env }}.kiranpanchavati.online"
 
-- name: Load master data (run as roboshop)
+- name: Load master data
   ansible.builtin.shell: |
-    mysql -h mysql-{{ env }}.kiranpanchavati.online -uroboshop -pRoboShop@1 < /app/db/master-data.sql
+    mysql -h mysql-{{ env }}.kiranpanchavati.online \
+    -uroboshop -pRoboShop@1 < master-data.sql
   args:
+    chdir: /app/db
     executable: /bin/bash
+
+- name: Verify tables
+  ansible.builtin.shell: |
+    mysql -h mysql-{{ env }}.kiranpanchavati.online \
+    -uroboshop -pRoboShop@1 \
+    -e "use cities; show tables;"
+  register: mysql_tables
+
+- name: Display tables
+  ansible.builtin.debug:
+    var: mysql_tables.stdout_lines
